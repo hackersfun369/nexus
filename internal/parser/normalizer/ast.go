@@ -1,5 +1,7 @@
 package normalizer
 
+import tree_sitter "github.com/tree-sitter/go-tree-sitter"
+
 // NodeKind represents the type of an AST node
 type NodeKind string
 
@@ -120,4 +122,47 @@ type ASTNode struct {
 
 	// Raw source
 	RawSource string
+}
+
+// DetectLanguage detects the language from a file extension
+func DetectLanguage(filePath string) Language {
+	if len(filePath) == 0 {
+		return ""
+	}
+	switch {
+	case hasSuffix(filePath, ".py"):
+		return LangPython
+	case hasSuffix(filePath, ".ts"), hasSuffix(filePath, ".tsx"):
+		return LangTypeScript
+	case hasSuffix(filePath, ".js"), hasSuffix(filePath, ".jsx"):
+		return LangTypeScript
+	case hasSuffix(filePath, ".java"):
+		return LangJava
+	default:
+		return ""
+	}
+}
+
+// NewNormalizer returns the correct normalizer for a language
+func NewNormalizer(lang Language) Normalizer {
+	switch lang {
+	case LangPython:
+		return &PythonNormalizer{}
+	case LangTypeScript:
+		return &TypeScriptNormalizer{}
+	case LangJava:
+		return &JavaNormalizer{}
+	default:
+		return nil
+	}
+}
+
+// Normalizer is the interface all language normalizers implement
+// Normalizer is the interface all language normalizers implement
+type Normalizer interface {
+	Normalize(node *tree_sitter.Node) ASTNode
+}
+
+func hasSuffix(s, suffix string) bool {
+	return len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix
 }

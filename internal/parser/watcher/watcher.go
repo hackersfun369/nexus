@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -321,4 +322,25 @@ func detectLanguage(path string) Language {
 // WatchedPaths returns all currently watched paths
 func (w *Watcher) WatchedPaths() []string {
 	return w.fsw.WatchList()
+}
+
+// SupportedFiles returns all supported files under rootPath
+func (w *Watcher) SupportedFiles(rootPath string) ([]string, error) {
+	var files []string
+	err := filepath.WalkDir(rootPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			if w.shouldIgnoreDir(d.Name()) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if w.isSupportedFile(path) {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return files, err
 }
