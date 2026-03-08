@@ -1,0 +1,25 @@
+# Built binary
+nexus
+
+# Go
+*.exe
+*.test
+*.out
+/vendor/
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# NEXUS runtime cache
+.nexus/runtimes/
+.nexus/cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
