@@ -36,7 +36,7 @@ func newTestApplier(t *testing.T) (*applier.Applier, store.GraphStore) {
 
 func buildDelta(projectID, filePath string, children ...normalizer.ASTNode) extractor.GraphDelta {
 	module := normalizer.ASTNode{
-		ID:       "mod-001",
+		ID:       "mod-" + filePath,
 		Kind:     normalizer.KindModule,
 		Language: normalizer.LangPython,
 		Name:     filePath,
