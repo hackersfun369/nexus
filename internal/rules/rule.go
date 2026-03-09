@@ -23,6 +23,7 @@ const (
 type Category string
 
 const (
+	CategoryComplexity       Category = "COMPLEXITY"
 	CategorySecurity        Category = "SECURITY"
 	CategoryCorrectness     Category = "CORRECTNESS"
 	CategoryPerformance     Category = "PERFORMANCE"
