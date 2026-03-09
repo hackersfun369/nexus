@@ -228,14 +228,14 @@ func (s *SQLiteStore) WriteFunction(ctx context.Context, f Function) error {
 			 visibility, parameters, return_type,
 			 is_async, is_static, is_abstract, is_constructor,
 			 cyclomatic_complexity, lines_of_code, parameter_count,
-			 nesting_depth, fan_in, fan_out, doc_comment, annotations)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+			 nesting_depth, fan_in, fan_out, test_coverage, doc_comment, annotations)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		f.ID, f.Name, f.QualifiedName, f.ModuleID, f.Language,
 		f.StartLine, f.StartCol, f.EndLine, f.EndCol,
 		f.Visibility, f.Parameters, f.ReturnType,
 		f.IsAsync, f.IsStatic, f.IsAbstract, f.IsConstructor,
 		f.CyclomaticComplexity, f.LinesOfCode, f.ParameterCount,
-		f.NestingDepth, f.FanIn, f.FanOut, f.DocComment, f.Annotations,
+		f.NestingDepth, f.FanIn, f.FanOut, f.TestCoverage, f.DocComment, f.Annotations,
 	)
 	if err != nil {
 		return fmt.Errorf("WriteFunction: %w", err)
@@ -251,7 +251,7 @@ func (s *SQLiteStore) GetFunction(ctx context.Context, id string) (Function, err
 			f.visibility, f.parameters, f.return_type,
 			f.is_async, f.is_static, f.is_abstract, f.is_constructor,
 			f.cyclomatic_complexity, f.lines_of_code, f.parameter_count,
-			f.nesting_depth, f.fan_in, f.fan_out, f.doc_comment, f.annotations,
+			f.nesting_depth, f.fan_in, f.fan_out, f.test_coverage, f.doc_comment, f.annotations,
 			n.checksum, n.created_at, n.updated_at
 		FROM functions f JOIN nodes n ON f.id = n.id
 		WHERE f.id = ?`, id,
@@ -261,7 +261,7 @@ func (s *SQLiteStore) GetFunction(ctx context.Context, id string) (Function, err
 		&f.Visibility, &f.Parameters, &f.ReturnType,
 		&f.IsAsync, &f.IsStatic, &f.IsAbstract, &f.IsConstructor,
 		&f.CyclomaticComplexity, &f.LinesOfCode, &f.ParameterCount,
-		&f.NestingDepth, &f.FanIn, &f.FanOut, &f.DocComment, &f.Annotations,
+		&f.NestingDepth, &f.FanIn, &f.FanOut, &f.TestCoverage, &f.DocComment, &f.Annotations,
 		&f.Checksum, &f.CreatedAt, &f.UpdatedAt,
 	)
 	if err == sql.ErrNoRows {
@@ -280,7 +280,7 @@ func (s *SQLiteStore) QueryFunctions(ctx context.Context, f FunctionFilter) ([]F
 			f.visibility, f.parameters, f.return_type,
 			f.is_async, f.is_static, f.is_abstract, f.is_constructor,
 			f.cyclomatic_complexity, f.lines_of_code, f.parameter_count,
-			f.nesting_depth, f.fan_in, f.fan_out, f.doc_comment, f.annotations,
+			f.nesting_depth, f.fan_in, f.fan_out, f.test_coverage, f.doc_comment, f.annotations,
 			n.checksum, n.created_at, n.updated_at
 		FROM functions f JOIN nodes n ON f.id = n.id
 		WHERE n.project_id = ? AND n.is_deleted = FALSE`
@@ -311,7 +311,7 @@ func (s *SQLiteStore) QueryFunctions(ctx context.Context, f FunctionFilter) ([]F
 			&fn.Visibility, &fn.Parameters, &fn.ReturnType,
 			&fn.IsAsync, &fn.IsStatic, &fn.IsAbstract, &fn.IsConstructor,
 			&fn.CyclomaticComplexity, &fn.LinesOfCode, &fn.ParameterCount,
-			&fn.NestingDepth, &fn.FanIn, &fn.FanOut, &fn.DocComment, &fn.Annotations,
+			&fn.NestingDepth, &fn.FanIn, &fn.FanOut, &fn.TestCoverage, &fn.DocComment, &fn.Annotations,
 			&fn.Checksum, &fn.CreatedAt, &fn.UpdatedAt,
 		); err != nil {
 			return nil, err
