@@ -103,9 +103,8 @@ jobs:
             ### Install
 
             **Linux / macOS / WSL:**
-```sh
-            curl -fsSL https://raw.githubusercontent.com/hackersfun369/nexus/main/install.sh | sh
-```
+
+                curl -fsSL https://raw.githubusercontent.com/hackersfun369/nexus/main/install.sh | sh
 
             **Manual download:** Pick the binary for your platform below.
 
