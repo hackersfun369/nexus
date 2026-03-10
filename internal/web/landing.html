@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEXUS — Intelligent Development Platform</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #7d8590;
+      --blue:     #58a6ff;
+      --green:    #3fb950;
+      --purple:   #d2a8ff;
+      --orange:   #ffa657;
+      --red:      #f85149;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 56px;
+      background: rgba(13,17,23,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.1rem; }
+    .nav-logo svg { color: var(--blue); }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; font-size: 0.875rem; color: var(--muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.875rem;
+      font-weight: 500; cursor: pointer; transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--blue); color: #0d1117; border: none; }
+    .btn-primary:hover { background: #79c0ff; text-decoration: none; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); text-decoration: none; }
+
+    /* HERO */
+    .hero {
+      max-width: 900px; margin: 0 auto;
+      padding: 5rem 2rem 3rem;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.25rem 0.75rem; border-radius: 999px;
+      background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.2);
+      font-size: 0.75rem; color: var(--blue); margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800; line-height: 1.15;
+      letter-spacing: -0.02em; margin-bottom: 1.25rem;
+    }
+    .hero h1 span { color: var(--blue); }
+    .hero p {
+      font-size: 1.125rem; color: var(--muted);
+      max-width: 600px; margin: 0 auto 2rem;
+    }
+    .hero-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+
+    /* TERMINAL */
+    .terminal {
+      max-width: 640px; margin: 3rem auto;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+    .terminal-bar {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1rem; background: #1c2128;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-r { background: #f85149; }
+    .dot-y { background: #d29922; }
+    .dot-g { background: #3fb950; }
+    .terminal-title { flex: 1; text-align: center; font-size: 0.75rem; color: var(--muted); }
+    .terminal-body { padding: 1.25rem 1.5rem; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; line-height: 1.8; }
+    .t-prompt { color: var(--green); }
+    .t-cmd { color: var(--text); }
+    .t-out { color: var(--muted); }
+    .t-blue { color: var(--blue); }
+    .t-purple { color: var(--purple); }
+    .t-orange { color: var(--orange); }
+
+    /* FEATURES */
+    .section { max-width: 1100px; margin: 0 auto; padding: 4rem 2rem; }
+    .section-title {
+      text-align: center; font-size: 1.75rem; font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .section-sub { text-align: center; color: var(--muted); margin-bottom: 3rem; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: var(--blue); }
+    .feature-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem; font-size: 1.1rem;
+    }
+    .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .feature-card p { font-size: 0.85rem; color: var(--muted); }
+
+    /* PLATFORMS */
+    .platforms { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 2rem; }
+    .platform-pill {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 1rem; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 0.8rem; color: var(--muted);
+      transition: all 0.15s;
+    }
+    .platform-pill:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* STATS */
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1.5rem; text-align: center; margin: 3rem 0;
+    }
+    .stat-number { font-size: 2rem; font-weight: 800; color: var(--blue); }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* INSTALL */
+    .install-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 2rem; text-align: center; max-width: 600px; margin: 0 auto;
+    }
+    .install-cmd {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.75rem 1rem; margin: 1rem 0;
+      font-family: monospace; font-size: 0.85rem; color: var(--green);
+    }
+    .copy-btn {
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; padding: 0.25rem; border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .copy-btn:hover { color: var(--text); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem; text-align: center;
+      font-size: 0.8rem; color: var(--muted);
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    /* DIVIDER */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      <path d="m9 9 2 2-2 2M13 13h3"/>
+    </svg>
+    NEXUS
+  </div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#platforms">Platforms</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/hackersfun369/nexus" target="_blank">GitHub</a>
+  </div>
+  <div style="display:flex;gap:0.5rem">
+    <a href="/app" class="btn btn-outline">Open App</a>
+    <a href="#install" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+    Symbolic AI · No LLMs · Fully Local
+  </div>
+  <h1>Build any app with<br/><span>one sentence</span></h1>
+  <p>NEXUS analyzes your requirements, selects the right stack, and generates production-ready code — instantly, locally, for any platform.</p>
+  <div class="hero-actions">
+    <a href="/app" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Open Web UI
+    </a>
+    <a href="#install" class="btn btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+      Install CLI
+    </a>
+    <a href="https://github.com/hackersfun369/nexus" class="btn btn-outline" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      GitHub
+    </a>
+  </div>
+</section>
+
+<!-- TERMINAL DEMO -->
+<div class="terminal" style="max-width:640px;margin:0 auto 4rem;">
+  <div class="terminal-bar">
+    <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+    <span class="terminal-title">nexus — zsh</span>
+  </div>
+  <div class="terminal-body">
+    <div><span class="t-prompt">❯ </span><span class="t-cmd">nexus serve</span></div>
+    <div class="t-out">  NEXUS Web UI</div>
+    <div class="t-out">  ─────────────────────────────</div>
+    <div class="t-blue">  Local:   http://localhost:8080</div>
+    <div class="t-out">  ─────────────────────────────</div>
+    <br/>
+    <div><span class="t-prompt">❯ </span><span class="t-cmd">nexus plugin list</span></div>
+    <div class="t-out">  NAME                PLATFORM   LANGUAGE    STATUS</div>
+    <div class="t-purple">  python-fastapi      backend    python      installed</div>
+    <div class="t-purple">  react-web           web        typescript  installed</div>
+    <div class="t-purple">  kotlin-android      android    kotlin      installed</div>
+    <div class="t-purple">  flutter-mobile      all        dart        installed</div>
+    <br/>
+    <div><span class="t-prompt">❯ </span><span class="t-cmd">nexus <span class="t-orange">"build a food delivery API with auth"</span></span></div>
+    <div class="t-out">  ✓ Generated <span class="t-blue">FoodAPI</span> · plugin=<span class="t-purple">python-fastapi</span> · 13 files · score=<span class="t-green" style="color:var(--green)">85/100</span></div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <h2 class="section-title">Everything you need to ship faster</h2>
+  <p class="section-sub">From a single sentence to a complete project — with quality built in</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(88,166,255,0.1)">🧠</div>
+      <h3>Symbolic AI — No LLMs</h3>
+      <p>NEXUS uses a rule engine and knowledge graph, not language models. Fast, deterministic, and works completely offline.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(63,185,80,0.1)">⚡</div>
+      <h3>Instant Code Generation</h3>
+      <p>Describe your app in plain English. NEXUS picks the right plugin and generates a complete, runnable project in milliseconds.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(210,168,255,0.1)">🔌</div>
+      <h3>Plugin System</h3>
+      <p>8 official plugins covering Python, Go, React, Kotlin, Flutter, and more. Install community plugins or build your own.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(255,166,87,0.1)">🛡️</div>
+      <h3>Quality Gate</h3>
+      <p>33 static analysis rules run automatically on every generated project. Security, performance, complexity — scored 0–100.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(248,81,73,0.1)">💬</div>
+      <h3>Conversational Refinement</h3>
+      <p>Follow-up in the chat to add features, change the stack, or fix issues. NEXUS regenerates the project instantly.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(88,166,255,0.1)">📦</div>
+      <h3>One-line Install</h3>
+      <p>Single binary, no dependencies. Install with curl and start building in seconds on Linux, macOS, or Windows (WSL).</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- STATS -->
+<section class="section">
+  <div class="stats">
+    <div><div class="stat-number">6</div><div class="stat-label">Target Platforms</div></div>
+    <div><div class="stat-number">40+</div><div class="stat-label">Code Templates</div></div>
+    <div><div class="stat-number">33</div><div class="stat-label">Quality Rules</div></div>
+    <div><div class="stat-number">8</div><div class="stat-label">Official Plugins</div></div>
+    <div><div class="stat-number">0</div><div class="stat-label">External Dependencies</div></div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- PLATFORMS -->
+<section class="section" id="platforms">
+  <h2 class="section-title">Generate for any platform</h2>
+  <p class="section-sub">One tool, every target</p>
+  <div class="platforms">
+    <div class="platform-pill">🐍 Python FastAPI</div>
+    <div class="platform-pill">⚛️ React + TypeScript</div>
+    <div class="platform-pill">🐹 Go Backend</div>
+    <div class="platform-pill">🤖 Kotlin Android</div>
+    <div class="platform-pill">🦋 Flutter Mobile</div>
+    <div class="platform-pill">🖥️ Electron Desktop</div>
+    <div class="platform-pill">🦀 Rust CLI</div>
+    <div class="platform-pill">🍎 Swift iOS</div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- INSTALL -->
+<section class="section" id="install">
+  <h2 class="section-title">Get started in seconds</h2>
+  <p class="section-sub">Single binary. No runtime. No Docker. Just run.</p>
+  <div class="install-box">
+    <p style="font-size:0.875rem;color:var(--muted);margin-bottom:0.5rem">Install on Linux / macOS / WSL</p>
+    <div class="install-cmd">
+      <span>curl -fsSL https://raw.githubusercontent.com/hackersfun369/nexus/main/install.sh | sh</span>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/hackersfun369/nexus/main/install.sh | sh');this.textContent='✓'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:1rem;text-align:left">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-family:monospace;font-size:0.75rem">
+        <div style="color:var(--muted);margin-bottom:0.25rem"># Start web UI</div>
+        <div style="color:var(--green)">nexus serve</div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-family:monospace;font-size:0.75rem">
+        <div style="color:var(--muted);margin-bottom:0.25rem"># Terminal chat</div>
+        <div style="color:var(--green)">nexus</div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem;font-family:monospace;font-size:0.75rem">
+        <div style="color:var(--muted);margin-bottom:0.25rem"># List plugins</div>
+        <div style="color:var(--green)">nexus plugin list</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- FOOTER -->
+<footer>
+  <p>Built with Go · React · Symbolic AI &nbsp;·&nbsp;
+    <a href="https://github.com/hackersfun369/nexus" target="_blank">GitHub</a> &nbsp;·&nbsp;
+    <a href="/app">Open App</a>
+  </p>
+  <p style="margin-top:0.5rem">NEXUS is open source · MIT License</p>
+</footer>
+
+</body>
+</html>
