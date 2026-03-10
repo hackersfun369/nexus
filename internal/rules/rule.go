@@ -56,6 +56,8 @@ type Finding struct {
 // ── RULE INTERFACE ────────────────────────────────────
 
 type Rule interface {
+	Description() string
+	Remediation() string
 	ID() string
 	Name() string
 	Severity() Severity
