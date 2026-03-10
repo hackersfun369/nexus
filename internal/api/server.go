@@ -87,6 +87,8 @@ func (s *Server) buildRouter() *chi.Mux {
 		})
 		r.Post("/generate", s.handleGenerate)
 		r.Get("/generate/zip", s.handleDownloadZip)
+		r.Get("/generated", s.handleListGeneratedProjects)
+		r.Get("/generated/{id}", s.handleGetGeneratedProject)
 	})
 
 	return r

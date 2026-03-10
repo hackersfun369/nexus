@@ -92,7 +92,15 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		writeJSON(w, http.StatusOK, toResponse(result, ""))
+		resp := toResponse(result, "")
+		// Auto-save in background
+		go func() {
+			if _, err := s.saveGeneratedProject(context.Background(), req.Prompt, resp); err != nil {
+				// non-fatal
+				_ = err
+			}
+		}()
+		writeJSON(w, http.StatusOK, resp)
 		return
 	}
 

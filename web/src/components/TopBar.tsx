@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useAppStore } from '@/store/app'
-import { Cpu, Download, Play, Home } from 'lucide-react'
+import ProjectHistory from './ProjectHistory'
+import { Cpu, Download, Play, Home, History } from 'lucide-react'
 import { downloadZipUrl } from '@/store/api'
 
 export default function TopBar() {
   const { selectedPlatforms, selectedLanguages, isGenerating, setPage, messages } = useAppStore()
+  const [showHistory, setShowHistory] = useState(false)
 
   const firstPrompt = messages[0]?.content ?? ''
   const platform = selectedPlatforms[0] ?? ''
@@ -19,6 +22,7 @@ export default function TopBar() {
   }
 
   return (
+    <>
     <div className="h-12 border-b border-[#30363d] bg-[#161b22] flex items-center px-4 gap-4 shrink-0">
       <div className="flex items-center gap-2">
         <Cpu className="w-5 h-5 text-[#58a6ff]" />
@@ -50,6 +54,26 @@ export default function TopBar() {
         )}
 
         <button
+          onClick={() => setShowHistory(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
+                     border border-[#30363d] text-[#7d8590]
+                     hover:text-[#e6edf3] hover:border-[#58a6ff] transition-colors"
+        >
+          <History className="w-3.5 h-3.5" />
+          History
+        </button>
+
+        <button
+          onClick={() => setShowHistory(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
+                     border border-[#30363d] text-[#7d8590]
+                     hover:text-[#e6edf3] hover:border-[#58a6ff] transition-colors"
+        >
+          <History className="w-3.5 h-3.5" />
+          History
+        </button>
+
+        <button
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
                      border border-[#30363d] text-[#7d8590]
                      hover:text-[#e6edf3] hover:border-[#58a6ff] transition-colors"
@@ -77,5 +101,7 @@ export default function TopBar() {
         </button>
       </div>
     </div>
+    {showHistory && <ProjectHistory onClose={() => setShowHistory(false)} />}
+    </>
   )
 }
