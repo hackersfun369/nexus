@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/bytecodealliance/wasmtime-go/v20 v20.0.0 // indirect
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 )
