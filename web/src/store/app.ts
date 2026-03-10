@@ -11,6 +11,23 @@ export interface Message {
   timestamp: Date
 }
 
+export interface QualityIssue {
+  rule_id: string
+  severity: string
+  category: string
+  file: string
+  line: number
+  message: string
+  fix: string
+}
+
+export interface QualityReport {
+  issues: QualityIssue[]
+  issue_count: number
+  score: number
+  passed: boolean
+}
+
 export interface Project {
   id: string
   name: string
@@ -54,6 +71,10 @@ interface AppState {
   setGeneratedFiles: (files: GeneratedFile[]) => void
   activeFile: string | null
   setActiveFile: (path: string | null) => void
+
+  // Quality
+  quality: QualityReport | null
+  setQuality: (q: QualityReport | null) => void
 
   // UI state
   sidebarOpen: boolean
@@ -120,4 +141,7 @@ export const useAppStore = create<AppState>((set) => ({
   setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
   isGenerating: false,
   setIsGenerating: (isGenerating) => set({ isGenerating }),
+
+  quality: null,
+  setQuality: (quality) => set({ quality }),
 }))

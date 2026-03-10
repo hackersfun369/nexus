@@ -11,9 +11,10 @@ import (
 
 // GeneratedFile is a file produced by the generator
 type GeneratedFile struct {
-	Path    string
-	Content string
-	Size    int
+	Path     string
+	Content  string
+	Size     int
+	Language string
 }
 
 // GenerateResult is the output of a generation run
@@ -75,9 +76,10 @@ func (g *Generator) Generate(ctx context.Context, prompt, outputDir string) (*Ge
 		}
 
 		gf := GeneratedFile{
-			Path:    spec.Path,
-			Content: content,
-			Size:    len(content),
+			Path:     spec.Path,
+			Content:  content,
+			Size:     len(content),
+			Language: langFromPath(spec.Path),
 		}
 		result.Files = append(result.Files, gf)
 		result.TotalBytes += gf.Size
@@ -113,9 +115,10 @@ func (g *Generator) GeneratePreview(ctx context.Context, prompt string) (*Genera
 		}
 
 		result.Files = append(result.Files, GeneratedFile{
-			Path:    spec.Path,
-			Content: content,
-			Size:    len(content),
+			Path:     spec.Path,
+			Content:  content,
+			Size:     len(content),
+			Language: langFromPath(spec.Path),
 		})
 		result.TotalBytes += len(content)
 	}
@@ -161,4 +164,25 @@ func writeFile(path, content string) error {
 		return fmt.Errorf("mkdir: %w", err)
 	}
 	return os.WriteFile(path, []byte(content), 0644)
+}
+
+func langFromPath(path string) string {
+	switch {
+	case strings.HasSuffix(path, ".py"):    return "python"
+	case strings.HasSuffix(path, ".go"):    return "go"
+	case strings.HasSuffix(path, ".ts") || strings.HasSuffix(path, ".tsx"): return "typescript"
+	case strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".jsx"): return "javascript"
+	case strings.HasSuffix(path, ".kt"):    return "kotlin"
+	case strings.HasSuffix(path, ".dart"):  return "dart"
+	case strings.HasSuffix(path, ".swift"): return "swift"
+	case strings.HasSuffix(path, ".rs"):    return "rust"
+	case strings.HasSuffix(path, ".sql"):   return "sql"
+	case strings.HasSuffix(path, ".md"):    return "markdown"
+	case strings.HasSuffix(path, ".json"):  return "json"
+	case strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml"): return "yaml"
+	case strings.HasSuffix(path, ".xml"):   return "xml"
+	case strings.HasSuffix(path, ".html"):  return "html"
+	case strings.HasSuffix(path, ".css"):   return "css"
+	default: return "text"
+	}
 }

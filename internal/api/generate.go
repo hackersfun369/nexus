@@ -2,6 +2,7 @@ package api
 
 import (
 	"archive/zip"
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -20,19 +21,37 @@ type GenerateRequest struct {
 }
 
 type GenerateResponse struct {
-	AppName   string          `json:"app_name"`
-	Platform  string          `json:"platform"`
-	Language  string          `json:"language"`
-	Framework string          `json:"framework"`
-	PluginID  string          `json:"plugin_id"`
-	Features  []string        `json:"features"`
-	Entities  []string        `json:"entities"`
-	Files     []FileEntry     `json:"files"`
-	FileCount int             `json:"file_count"`
-	TotalBytes int            `json:"total_bytes"`
-	DurationMS int64          `json:"duration_ms"`
-	OutputDir string          `json:"output_dir"`
-	Errors    []string        `json:"errors"`
+	AppName    string          `json:"app_name"`
+	Platform   string          `json:"platform"`
+	Language   string          `json:"language"`
+	Framework  string          `json:"framework"`
+	PluginID   string          `json:"plugin_id"`
+	Features   []string        `json:"features"`
+	Entities   []string        `json:"entities"`
+	Files      []FileEntry     `json:"files"`
+	FileCount  int             `json:"file_count"`
+	TotalBytes int             `json:"total_bytes"`
+	DurationMS int64           `json:"duration_ms"`
+	OutputDir  string          `json:"output_dir"`
+	Errors     []string        `json:"errors"`
+	Quality    *QualityReport  `json:"quality,omitempty"`
+}
+
+type QualityReport struct {
+	Issues     []QualityIssue `json:"issues"`
+	IssueCount int            `json:"issue_count"`
+	Score      int            `json:"score"`
+	Passed     bool           `json:"passed"`
+}
+
+type QualityIssue struct {
+	RuleID   string `json:"rule_id"`
+	Severity string `json:"severity"`
+	Category string `json:"category"`
+	File     string `json:"file"`
+	Line     int    `json:"line"`
+	Message  string `json:"message"`
+	Fix      string `json:"fix"`
 }
 
 type FileEntry struct {
@@ -103,6 +122,28 @@ func toResponse(result *codegen.GenerateResult, outputDir string) GenerateRespon
 			Lang:    langFromPath(f.Path),
 		})
 	}
+
+	// Run quality analysis on generated files
+	report := codegen.Analyze(context.Background(), result.Files)
+	issues := make([]QualityIssue, 0, len(report.Issues))
+	for _, i := range report.Issues {
+		issues = append(issues, QualityIssue{
+			RuleID:   i.RuleID,
+			Severity: i.Severity,
+			Category: i.Category,
+			File:     i.File,
+			Line:     i.Line,
+			Message:  i.Message,
+			Fix:      i.Fix,
+		})
+	}
+	quality := &QualityReport{
+		Issues:     issues,
+		IssueCount: report.IssueCount,
+		Score:      report.Score,
+		Passed:     report.Passed,
+	}
+
 	return GenerateResponse{
 		AppName:    result.Intent.AppName,
 		Platform:   result.Intent.Platform,
@@ -117,6 +158,7 @@ func toResponse(result *codegen.GenerateResult, outputDir string) GenerateRespon
 		DurationMS: result.Duration.Milliseconds(),
 		OutputDir:  outputDir,
 		Errors:     result.Errors,
+		Quality:    quality,
 	}
 }
 

@@ -1,5 +1,22 @@
 const BASE = '/api/v1'
 
+export interface QualityIssue {
+  rule_id: string
+  severity: string
+  category: string
+  file: string
+  line: number
+  message: string
+  fix: string
+}
+
+export interface QualityReport {
+  issues: QualityIssue[]
+  issue_count: number
+  score: number
+  passed: boolean
+}
+
 export interface GenerateResponse {
   app_name: string
   platform: string
@@ -14,6 +31,7 @@ export interface GenerateResponse {
   duration_ms: number
   output_dir: string
   errors: string[]
+  quality?: QualityReport
 }
 
 export async function generatePreview(
