@@ -8,6 +8,7 @@ import (
 type GraphStore interface {
 	CreateProject(ctx context.Context, p Project) error
 	GetProject(ctx context.Context, id string) (Project, error)
+	ListProjects(ctx context.Context) ([]Project, error)
 	UpdateProject(ctx context.Context, p Project) error
 	DeleteProject(ctx context.Context, id string) error
 

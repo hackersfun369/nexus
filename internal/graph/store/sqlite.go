@@ -74,6 +74,33 @@ func (s *SQLiteStore) GetProject(ctx context.Context, id string) (Project, error
 	return p, nil
 }
 
+func (s *SQLiteStore) ListProjects(ctx context.Context) ([]Project, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, name, root_path, platform, primary_language,
+			created_at, updated_at, last_analyzed, version, description
+		FROM project ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("ListProjects: %w", err)
+	}
+	defer rows.Close()
+	var projects []Project
+	for rows.Next() {
+		var p Project
+		var lastAnalyzed sql.NullTime
+		if err := rows.Scan(
+			&p.ID, &p.Name, &p.RootPath, &p.Platform, &p.PrimaryLanguage,
+			&p.CreatedAt, &p.UpdatedAt, &lastAnalyzed, &p.Version, &p.Description,
+		); err != nil {
+			return nil, fmt.Errorf("ListProjects scan: %w", err)
+		}
+		if lastAnalyzed.Valid {
+			p.LastAnalyzed = &lastAnalyzed.Time
+		}
+		projects = append(projects, p)
+	}
+	return projects, rows.Err()
+}
+
 func (s *SQLiteStore) UpdateProject(ctx context.Context, p Project) error {
 	_, err := s.db.ExecContext(ctx, `
 		UPDATE project SET name=?, platform=?, primary_language=?,
