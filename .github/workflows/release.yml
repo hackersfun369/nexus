@@ -3,118 +3,130 @@ name: Release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - 'v*'
 
-env:
-  GO_VERSION: "1.23"
-  CGO_ENABLED: 1
-  BINARY_NAME: nexus
+permissions:
+  contents: write
 
 jobs:
-  build-matrix:
-    name: Build ${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ matrix.runner }}
+  build:
+    name: Build & Release
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
         include:
-          - os: linux
-            arch: amd64
-            runner: ubuntu-latest
-            cc: gcc
-          - os: linux
-            arch: arm64
-            runner: ubuntu-latest
-            cc: aarch64-linux-gnu-gcc
-          - os: darwin
-            arch: amd64
-            runner: macos-latest
-            cc: gcc
-          - os: darwin
-            arch: arm64
-            runner: macos-latest
-            cc: gcc
-          - os: windows
-            arch: amd64
-            runner: windows-latest
-            cc: gcc
+          - goos: linux
+            goarch: amd64
+            suffix: linux-amd64
+          - goos: linux
+            goarch: arm64
+            suffix: linux-arm64
+          - goos: darwin
+            goarch: amd64
+            suffix: darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            suffix: darwin-arm64
+          - goos: windows
+            goarch: amd64
+            suffix: windows-amd64
+            ext: .exe
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
+          go-version: '1.23'
 
-      - name: Install dependencies (Linux)
-        if: matrix.os == 'linux'
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y gcc libsqlite3-dev
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-          fi
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-      - name: Install dependencies (macOS)
-        if: matrix.os == 'darwin'
-        run: brew install sqlite3
+      - name: Install pnpm
+        run: npm install -g pnpm
 
-      - name: Set binary name
-        shell: bash
-        run: |
-          if [ "${{ matrix.os }}" = "windows" ]; then
-            echo "BINARY=${{ env.BINARY_NAME }}-${{ matrix.os }}-${{ matrix.arch }}.exe" >> $GITHUB_ENV
-          else
-            echo "BINARY=${{ env.BINARY_NAME }}-${{ matrix.os }}-${{ matrix.arch }}" >> $GITHUB_ENV
-          fi
+      - name: Build web UI
+        run: cd web && pnpm install && pnpm build
 
       - name: Build binary
-        shell: bash
         env:
-          GOOS: ${{ matrix.os }}
-          GOARCH: ${{ matrix.arch }}
-          CC: ${{ matrix.cc }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
         run: |
-          CGO_ENABLED=1 go build \
-            -ldflags="-s -w -X main.version=${{ github.ref_name }} -X main.commit=${{ github.sha }}" \
-            -o dist/${{ env.BINARY }} \
-            ./cmd/nexus
+          VERSION=${GITHUB_REF_NAME}
+          COMMIT=$(git rev-parse --short HEAD)
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          LDFLAGS="-s -w \
+            -X github.com/hackersfun369/nexus/internal/version.Version=${VERSION} \
+            -X github.com/hackersfun369/nexus/internal/version.Commit=${COMMIT} \
+            -X github.com/hackersfun369/nexus/internal/version.BuildDate=${DATE}"
+          mkdir -p dist
+          go build -ldflags "${LDFLAGS}" -o dist/nexus-${{ matrix.suffix }}${{ matrix.ext }} ./cmd/nexus
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.BINARY_NAME }}-${{ matrix.os }}-${{ matrix.arch }}
-          path: dist/${{ env.BINARY }}
-          retention-days: 7
+          name: nexus-${{ matrix.suffix }}
+          path: dist/nexus-${{ matrix.suffix }}${{ matrix.ext }}
 
   release:
-    name: Create Release
-    needs: build-matrix
+    name: Create GitHub Release
+    needs: build
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist/
+          path: dist
           merge-multiple: true
 
-      - name: List artifacts
-        run: ls -la dist/
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum nexus-* > checksums.txt
+          cat checksums.txt
 
-      - name: Create GitHub Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
-          generate_release_notes: true
+          name: NEXUS ${{ github.ref_name }}
+          body: |
+            ## NEXUS ${{ github.ref_name }}
+
+            ### Install
+
+            **Linux / macOS / WSL:**
+```sh
+            curl -fsSL https://raw.githubusercontent.com/hackersfun369/nexus/main/install.sh | sh
+```
+
+            **Manual download:** Pick the binary for your platform below.
+
+            ### Platforms
+            | Binary | OS | Arch |
+            |--------|-----|------|
+            | nexus-linux-amd64 | Linux | x86_64 |
+            | nexus-linux-arm64 | Linux | ARM64 |
+            | nexus-darwin-amd64 | macOS | Intel |
+            | nexus-darwin-arm64 | macOS | Apple Silicon |
+            | nexus-windows-amd64.exe | Windows | x86_64 |
+
+            ### What's in this release
+            - Code generator: 6 platforms, 40+ templates
+            - 33 quality rules
+            - Plugin system (8 official plugins)
+            - Web UI with syntax highlighting
+            - Terminal chat REPL
+            - Project persistence
+          files: |
+            dist/nexus-*
+            dist/checksums.txt
           draft: false
-          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
