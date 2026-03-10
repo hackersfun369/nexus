@@ -1,51 +1,12 @@
 import { useAppStore } from '@/store/app'
 import { Code2, Eye } from 'lucide-react'
 
-const DEMO_CODE: Record<string, string> = {
-  'src/main.py': `from fastapi import FastAPI
-from src.api.routes import router
-from src.db.schema import init_db
-
-app = FastAPI(title="My App", version="1.0.0")
-app.include_router(router)
-
-@app.on_event("startup")
-async def startup():
-    await init_db()
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}`,
-
-  'src/api/routes.py': `from fastapi import APIRouter, HTTPException
-from src.api.models import Item, ItemCreate
-
-router = APIRouter(prefix="/api/v1")
-
-@router.get("/items")
-async def list_items():
-    return {"items": [], "count": 0}
-
-@router.post("/items", status_code=201)
-async def create_item(item: ItemCreate):
-    return {"id": "item-001", **item.dict()}`,
-
-  'src/api/models.py': `from pydantic import BaseModel
-from typing import Optional
-
-class ItemCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    price: float
-
-class Item(ItemCreate):
-    id: str`,
-}
-
 export default function CodeViewer() {
-  const { activeFile, previewMode, setPreviewMode } = useAppStore()
+  const { activeFile, previewMode, setPreviewMode, generatedFiles } = useAppStore()
 
-  const code = activeFile ? (DEMO_CODE[activeFile] ?? '# File content will appear here') : ''
+  const file = generatedFiles.find(f => f.path === activeFile)
+  const code = file?.content ?? ''
+  const lang = file?.language ?? 'text'
 
   return (
     <div className="flex flex-col h-full bg-[#0d1117]">
@@ -79,17 +40,18 @@ export default function CodeViewer() {
         {activeFile && (
           <span className="text-xs text-[#7d8590] truncate">{activeFile}</span>
         )}
+        {lang && lang !== 'text' && activeFile && (
+          <span className="ml-auto text-xs text-[#58a6ff] opacity-60">{lang}</span>
+        )}
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-auto">
         {previewMode === 'code' ? (
-          <pre className="p-4 text-xs text-[#e6edf3] font-mono leading-relaxed h-full">
+          <pre className="p-4 text-xs text-[#e6edf3] font-mono leading-relaxed min-h-full">
             {activeFile
-              ? <code>{code}</code>
-              : <span className="text-[#7d8590]">
-                  Select a file from the tree to view its contents
-                </span>
+              ? code
+              : <span className="text-[#7d8590]">Select a file from the tree to view its contents</span>
             }
           </pre>
         ) : (
@@ -97,9 +59,7 @@ export default function CodeViewer() {
             <div className="text-center">
               <Eye className="w-8 h-8 text-[#30363d] mx-auto mb-3" />
               <p className="text-[#7d8590] text-sm">Live preview</p>
-              <p className="text-[#7d8590] text-xs mt-1">
-                Available after code generation
-              </p>
+              <p className="text-[#7d8590] text-xs mt-1">Available after code generation</p>
             </div>
           </div>
         )}

@@ -65,6 +65,22 @@ func detectAppType(s string) string {
 }
 
 func detectPlatform(s string) string {
+	// Strong explicit hints take priority
+	for _, hint := range []struct{ phrase, platform string }{
+		{"for android", "android"}, {"for web", "web"}, {"for ios", "mac"},
+		{"for windows", "windows"}, {"for cli", "cli"}, {"for backend", "backend"},
+		{"for mobile", "all"}, {"android app", "android"}, {"web app", "web"},
+		{"web dashboard", "web"}, {"web ui", "web"},
+	} {
+		if strings.Contains(s, hint.phrase) {
+			return hint.platform
+		}
+	}
+	// fallthrough to original logic
+	return detectPlatformOriginal(s)
+}
+
+func detectPlatformOriginal(s string) string {
 	switch {
 	case containsAny(s, "android", "kotlin", "jetpack"):
 		return "android"

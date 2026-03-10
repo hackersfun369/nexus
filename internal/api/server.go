@@ -85,6 +85,8 @@ func (s *Server) buildRouter() *chi.Mux {
 			r.Get("/issues", s.handleListIssues)
 			r.Get("/summary", s.handleAnalysisSummary)
 		})
+		r.Post("/generate", s.handleGenerate)
+		r.Get("/generate/zip", s.handleDownloadZip)
 	})
 
 	return r
