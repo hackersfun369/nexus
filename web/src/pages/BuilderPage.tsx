@@ -45,8 +45,8 @@ export default function BuilderPage() {
             setQuality(result.quality)
           }
 
-          const featureList = result.features.length > 0
-            ? result.features.map(f => `• ${f}`).join('\n')
+          const featureList = (result.features ?? []).length > 0
+            ? (result.features ?? []).map(f => `• ${f}`).join('\n')
             : '• Core functionality'
 
           const qualityLine = result.quality

@@ -65,7 +65,7 @@ Restored from history. You can continue refining this project.`),R("builder"),s(
 • Platform: **${m||"web"}**
 • Languages: **${L.length>0?L.join(", "):"auto-detect"}**
 
-Generating project structure...`),bg(z,m,L).then(x=>{R(x.files.map(P=>({path:P.path,content:P.content,language:P.lang}))),x.files.length>0&&U(x.files[0].path),x.quality&&j(x.quality);const w=x.features.length>0?x.features.map(P=>`• ${P}`).join(`
+Generating project structure...`),bg(z,m,L).then(x=>{R(x.files.map(P=>({path:P.path,content:P.content,language:P.lang}))),x.files.length>0&&U(x.files[0].path),x.quality&&j(x.quality);const w=(x.features??[]).length>0?(x.features??[]).map(P=>`• ${P}`).join(`
 `):"• Core functionality",Z=x.quality?`
 
 **Quality score: ${x.quality.score}/100** ${x.quality.passed?"✓ Passed":"⚠ Issues found"} · ${x.quality.issue_count} issues`:"";s("nexus",`✓ Generated **${x.app_name}** using **${x.plugin_id}**
