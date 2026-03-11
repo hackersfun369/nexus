@@ -32,41 +32,21 @@ jobs:
           path: internal/web/static/
           retention-days: 1
 
-  build:
-    name: Build (${{ matrix.suffix }})
+  build-linux:
+    name: Build Linux
     needs: web
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            suffix: linux-amd64
-          - goos: linux
-            goarch: arm64
-            suffix: linux-arm64
-          - goos: darwin
-            goarch: amd64
-            suffix: darwin-amd64
-          - goos: darwin
-            goarch: arm64
-            suffix: darwin-arm64
-          - goos: windows
-            goarch: amd64
-            suffix: windows-amd64
-            ext: .exe
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
           cache: false
 
-      - name: Download Go modules
-        run: go mod download
+      - name: Install cross-compile tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y gcc gcc-aarch64-linux-gnu libsqlite3-dev
 
       - name: Download web static assets
         uses: actions/download-artifact@v4
@@ -75,43 +55,140 @@ jobs:
           path: /tmp/web-static
 
       - name: Copy web static assets
-        run: |
-          mkdir -p internal/web/static
-          cp -r /tmp/web-static/. internal/web/static/
+        run: mkdir -p internal/web/static && cp -r /tmp/web-static/. internal/web/static/
 
-      - name: Debug workspace
-        run: |
-          echo "=== workspace ==="
-          ls -la
-          echo "=== cmd ==="
-          ls -la cmd/ || echo "no cmd dir"
-          echo "=== cmd/nexus ==="
-          ls -la cmd/nexus/ || echo "no cmd/nexus dir"
+      - name: Download Go modules
+        run: go mod download
 
-      - name: Build binary
+      - name: Build linux-amd64
         env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: 1
+          CC: gcc
         run: |
-          VERSION=${GITHUB_REF_NAME}
-          COMMIT=$(git rev-parse --short HEAD)
-          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          LDFLAGS="-s -w -X github.com/hackersfun369/nexus/internal/version.Version=${VERSION} -X github.com/hackersfun369/nexus/internal/version.Commit=${COMMIT} -X github.com/hackersfun369/nexus/internal/version.BuildDate=${DATE}"
+          LDFLAGS="-s -w -X github.com/hackersfun369/nexus/internal/version.Version=${GITHUB_REF_NAME} -X github.com/hackersfun369/nexus/internal/version.Commit=$(git rev-parse --short HEAD) -X github.com/hackersfun369/nexus/internal/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           mkdir -p dist
-          go build -ldflags "${LDFLAGS}" -o dist/nexus-${{ matrix.suffix }}${{ matrix.ext }} ./cmd/nexus
+          go build -ldflags "${LDFLAGS}" -o dist/nexus-linux-amd64 ./cmd/nexus
 
-      - name: Upload artifact
+      - name: Build linux-arm64
+        env:
+          GOOS: linux
+          GOARCH: arm64
+          CGO_ENABLED: 1
+          CC: aarch64-linux-gnu-gcc
+        run: |
+          LDFLAGS="-s -w -X github.com/hackersfun369/nexus/internal/version.Version=${GITHUB_REF_NAME} -X github.com/hackersfun369/nexus/internal/version.Commit=$(git rev-parse --short HEAD) -X github.com/hackersfun369/nexus/internal/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          go build -ldflags "${LDFLAGS}" -o dist/nexus-linux-arm64 ./cmd/nexus
+
+      - name: Upload linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nexus-${{ matrix.suffix }}
-          path: dist/nexus-${{ matrix.suffix }}${{ matrix.ext }}
+          name: nexus-linux
+          path: dist/
+
+  build-macos:
+    name: Build macOS
+    needs: web
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: false
+
+      - name: Download web static assets
+        uses: actions/download-artifact@v4
+        with:
+          name: web-static
+          path: /tmp/web-static
+
+      - name: Copy web static assets
+        run: mkdir -p internal/web/static && cp -r /tmp/web-static/. internal/web/static/
+
+      - name: Download Go modules
+        run: go mod download
+
+      - name: Build darwin-amd64
+        env:
+          GOOS: darwin
+          GOARCH: amd64
+          CGO_ENABLED: 1
+        run: |
+          LDFLAGS="-s -w -X github.com/hackersfun369/nexus/internal/version.Version=${GITHUB_REF_NAME} -X github.com/hackersfun369/nexus/internal/version.Commit=$(git rev-parse --short HEAD) -X github.com/hackersfun369/nexus/internal/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          mkdir -p dist
+          go build -ldflags "${LDFLAGS}" -o dist/nexus-darwin-amd64 ./cmd/nexus
+
+      - name: Build darwin-arm64
+        env:
+          GOOS: darwin
+          GOARCH: arm64
+          CGO_ENABLED: 1
+        run: |
+          LDFLAGS="-s -w -X github.com/hackersfun369/nexus/internal/version.Version=${GITHUB_REF_NAME} -X github.com/hackersfun369/nexus/internal/version.Commit=$(git rev-parse --short HEAD) -X github.com/hackersfun369/nexus/internal/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          go build -ldflags "${LDFLAGS}" -o dist/nexus-darwin-arm64 ./cmd/nexus
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-macos
+          path: dist/
+
+  build-windows:
+    name: Build Windows
+    needs: web
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: false
+
+      - name: Download web static assets
+        uses: actions/download-artifact@v4
+        with:
+          name: web-static
+          path: C:\tmp\web-static
+
+      - name: Copy web static assets
+        run: |
+          New-Item -ItemType Directory -Force -Path internal\web\static
+          Copy-Item -Recurse -Force "C:\tmp\web-static\*" internal\web\static\
+        shell: pwsh
+
+      - name: Download Go modules
+        run: go mod download
+
+      - name: Install gcc for Windows
+        run: choco install mingw -y
+        shell: pwsh
+
+      - name: Build windows-amd64
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: 1
+        run: |
+          $VERSION = $env:GITHUB_REF_NAME
+          $COMMIT = git rev-parse --short HEAD
+          $DATE = (Get-Date -UFormat "%Y-%m-%dT%H:%M:%SZ")
+          $LDFLAGS = "-s -w -X github.com/hackersfun369/nexus/internal/version.Version=$VERSION -X github.com/hackersfun369/nexus/internal/version.Commit=$COMMIT -X github.com/hackersfun369/nexus/internal/version.BuildDate=$DATE"
+          New-Item -ItemType Directory -Force -Path dist
+          go build -ldflags $LDFLAGS -o dist\nexus-windows-amd64.exe .\cmd\nexus
+        shell: pwsh
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-windows
+          path: dist/
 
   release:
     name: Create GitHub Release
-    needs: build
+    needs: [build-linux, build-macos, build-windows]
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -153,11 +230,8 @@ jobs:
 
             ### Whats in this release
             - Code generator: 6 platforms, 40+ templates
-            - 33 quality rules
-            - Plugin system (8 official plugins)
-            - Web UI with syntax highlighting
-            - Terminal chat REPL
-            - Project persistence
+            - 33 quality rules · Plugin system · Web UI
+            - Terminal chat REPL · Project persistence
           files: |
             dist/nexus-*
             dist/checksums.txt
