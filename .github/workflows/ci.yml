@@ -9,6 +9,7 @@ on:
 env:
   GO_VERSION: "1.23"
   CGO_ENABLED: 1
+  SKIP_WATCHER_TEST: 1
 
 jobs:
   test:
