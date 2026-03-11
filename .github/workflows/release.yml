@@ -72,7 +72,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-static
-          path: internal/web/static/
+          path: /tmp/web-static
+
+      - name: Copy web static assets
+        run: |
+          mkdir -p internal/web/static
+          cp -r /tmp/web-static/. internal/web/static/
 
       - name: Debug workspace
         run: |
