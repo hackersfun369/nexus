@@ -74,6 +74,15 @@ jobs:
           name: web-static
           path: internal/web/static/
 
+      - name: Debug workspace
+        run: |
+          echo "=== workspace ==="
+          ls -la
+          echo "=== cmd ==="
+          ls -la cmd/ || echo "no cmd dir"
+          echo "=== cmd/nexus ==="
+          ls -la cmd/nexus/ || echo "no cmd/nexus dir"
+
       - name: Build binary
         env:
           GOOS: ${{ matrix.goos }}
