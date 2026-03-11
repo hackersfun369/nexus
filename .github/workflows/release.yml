@@ -9,8 +9,32 @@ permissions:
   contents: write
 
 jobs:
+  web:
+    name: Build Web UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Build web UI
+        run: cd web && pnpm install && pnpm build
+
+      - name: Upload static assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-static
+          path: internal/web/static/
+          retention-days: 1
+
   build:
-    name: Build & Release
+    name: Build (${{ matrix.suffix }})
+    needs: web
     runs-on: ubuntu-latest
 
     strategy:
@@ -39,17 +63,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+          cache: true
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Download web static assets
+        uses: actions/download-artifact@v4
         with:
-          node-version: '22'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Build web UI
-        run: cd web && pnpm install && pnpm build
+          name: web-static
+          path: internal/web/static/
 
       - name: Build binary
         env:
@@ -117,7 +137,7 @@ jobs:
             | nexus-darwin-arm64 | macOS | Apple Silicon |
             | nexus-windows-amd64.exe | Windows | x86_64 |
 
-            ### What's in this release
+            ### Whats in this release
             - Code generator: 6 platforms, 40+ templates
             - 33 quality rules
             - Plugin system (8 official plugins)
