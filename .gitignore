@@ -1,5 +1,6 @@
 # Built binary
-nexus
+/nexus
+/bin/nexus
 
 # Go
 *.exe
